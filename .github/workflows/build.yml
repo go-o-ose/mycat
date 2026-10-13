@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
@@ -21,24 +21,37 @@ jobs:
       - name: Install system deps
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk autoconf autoconf-archive automake libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 cmake libffi-dev libssl-dev python3-dev
+          sudo apt install -y \
+            git zip unzip \
+            openjdk-17-jdk \
+            autoconf autoconf-archive automake libtool libtool-bin \
+            pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 \
+            cmake libffi-dev libssl-dev \
+            python3-dev \
+            build-essential ccache
 
-      - name: Fix libffi
+      - name: Install buildozer + cython
         run: |
-          sudo apt install -y libtool-bin
-
-      - name: Install buildozer
-        run: |
+          pip install --user --upgrade pip
           pip install --user buildozer cython
 
       - name: Build APK
         run: |
           export PATH=$PATH:~/.local/bin
-          buildozer android debug 2>&1 | tail -100
+          buildozer android debug 2>&1 | tee build.log | tail -200
 
       - name: Upload APK
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: apk
           path: bin/*.apk
           if-no-files-found: warn
+
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
