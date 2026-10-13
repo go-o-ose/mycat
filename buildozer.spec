@@ -9,7 +9,7 @@ source.include_patterns = assets/*,images/*
 
 version = 0.1
 
-requirements = python3,kivy
+requirements = python3,kivy==2.2.1
 
 orientation = portrait
 fullscreen = 1
@@ -23,6 +23,8 @@ android.minapi = 24
 android.ndk = 25b
 android.accept_sdk_license = True
 android.allow_backup = True
+
+p4a.branch = master
 
 [buildozer]
 log_level = 2
