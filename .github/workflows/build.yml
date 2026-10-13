@@ -31,10 +31,10 @@ jobs:
             python3-dev \
             build-essential ccache
 
-      - name: Install buildozer + cython
+      - name: Install old buildozer
         run: |
           pip install --user --upgrade pip
-          pip install --user buildozer cython
+          pip install --user "buildozer==1.4.0" "cython==0.29.36"
 
       - name: Build APK
         run: |
