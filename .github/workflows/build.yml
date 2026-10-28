@@ -2,8 +2,8 @@ name: Build APK
 
 on:
   push:
-    branches: [ main ] # Сработает автоматически при пуше в ветку main
-  workflow_dispatch: # Добавляет кнопку для ручного запуска в интерфейсе
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -23,10 +23,10 @@ jobs:
           path: ~/.buildozer
           key: ${{ runner.os }}-buildozer-${{ steps.get-date.outputs.date }}
 
+      # ИСПОЛЬЗУЕМ АКТУАЛЬНЫЙ ОФИЦИАЛЬНЫЙ ЭКШЕН ОТ KIVY
       - name: Buildozer Action
-        uses: ArtemGovorov/buildozer-action@v1
+        uses: kivy/buildozer-action@master
         with:
-          buildozer_version: stable
           command: buildozer android debug
           repository_root: .
 
