@@ -7,11 +7,28 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ccache git libffi-dev libssl-dev autoconf automake libtool pkg-config zlib1g-dev libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav libgstreamer-plugins-base1.0-dev libasound2-dev libmpc-dev libmpfr-dev libgmp-dev
+          # Установка необходимых инструментов сборки Android
+          sudo apt-get install -y unzip zip openjdk-17-jdk
+
+      - name: Install Python Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install Cython==0.29.33 buildozer
 
       - name: Get Date
         id: get-date
@@ -23,12 +40,10 @@ jobs:
           path: ~/.buildozer
           key: ${{ runner.os }}-buildozer-${{ steps.get-date.outputs.date }}
 
-      # ИСПОЛЬЗУЕМ КОРРЕКТНЫЙ И ПОДДЕРЖИВАЕМЫЙ ЭКШЕН
-      - name: Buildozer Action
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          command: buildozer android debug
-          repository_root: .
+      # Прямой запуск сборки в системе без докера
+      - name: Build with Buildozer
+        run: |
+          yes | buildozer -v android debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
