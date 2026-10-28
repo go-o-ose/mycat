@@ -2,64 +2,36 @@ name: Build APK
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main ] # Сработает автоматически при пуше в ветку main
+  workflow_dispatch: # Добавляет кнопку для ручного запуска в интерфейсе
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
+      - name: Get Date
+        id: get-date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v4
         with:
-          python-version: '3.10'
+          path: ~/.buildozer
+          key: ${{ runner.os }}-buildozer-${{ steps.get-date.outputs.date }}
 
-      - name: Force Python 3.10 as default
-        run: |
-          PYTHON_PATH=$(which python3)
-          echo "Python path: $PYTHON_PATH"
-          python3 --version
-          sudo ln -sf $PYTHON_PATH /usr/local/bin/python3
-          python3 --version
+      - name: Buildozer Action
+        uses: ArtemGovorov/buildozer-action@v1
+        with:
+          buildozer_version: stable
+          command: buildozer android debug
+          repository_root: .
 
-      - name: Install system deps
-        run: |
-          sudo apt update
-          sudo apt install -y \
-            git zip unzip \
-            openjdk-17-jdk \
-            autoconf autoconf-archive automake libtool libtool-bin \
-            pkg-config \
-            zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo6 \
-            cmake libffi-dev libssl-dev \
-            python3-dev \
-            build-essential ccache
-
-      - name: Install old buildozer
-        run: |
-          pip install --user --upgrade pip
-          pip install --user "buildozer==1.4.0" "cython==0.29.36"
-
-      - name: Build APK
-        run: |
-          export PATH=$PATH:~/.local/bin
-          buildozer android debug 2>&1 | tee build.log | tail -200
-
-      - name: Upload APK
-        if: always()
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: apk
+          name: Kivy-App-APK
           path: bin/*.apk
-          if-no-files-found: warn
-
-      - name: Upload log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
